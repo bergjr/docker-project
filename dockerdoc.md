@@ -146,5 +146,112 @@ docker tag getting-started YOUR-USER-NAME/getting-started
 
 ![alt-text](images/dockerhub-push.png)
 
+# 4.Persist the DB
 
+In this section you will learn how to persist data between container launches.
 
+## Container's filesystem
+
+When a container starts, it uses the image layers as its filesystem. Each container also has its own temporary writable layer, where files can be created, modified, or deleted. These changes are isolated to that container and are not visible to other containers, even if they were created from the same image.
+
+## Container volumes
+
+Although containers can create, modify, and delete files, those changes are lost when the container is removed, since Docker keeps them isolated within that container. Volumes solve this problem by allowing data to persist independently of the container.
+
+## Create a volume and start the container
+
+1. You can create a volume using the following command
+```bash
+docker volume create todo-db
+```
+
+In the image below you can see that the volume has been created successfully:
+
+![alt-text](images/creating-volume.png)
+
+2. Now that you have created the volume, you need to stop and remove the todo container since is still running without our persistent volume. Do it by using the following command:
+
+ ```bash
+ docker rm -f $ID_CONTAINER
+ ```
+
+3. Start the container again, this time using the ```--mount``` option to attach a named volume and mount it to ```/etc/todos``` inside the container.
+
+![alt-text](images/docker-run-with-volume.png)
+
+When you open the application, your data will still be there, confirming that the volume is successfully persisting data across container restarts.
+
+![alt-text](images/persisted-items.png)
+
+## 5. Use bind mounts
+
+A bind mount is another type of mount that lets you share a directory from the host machine's filesystem with a container. When using a bind mount, the container sees changes made on the host, and the host also sees changes made inside the container.
+
+## Testing out bind mounts
+
+1. Go to the terminal and access your application directory (getting-started-app)
+
+2. Run the following command to start a ```bash``` in an container with a bind mount.
+
+```bash
+docker run -it --mount type=bind,src=.,target=/src ubuntu bash
+```
+
+The ```--mount type=bind``` option tells Docker to use a bind mount: ```src``` is the current directory on your host machine (```getting-started-app```), and ```target``` is the location where that directory is mounted inside the container (```/src```).
+
+3. The ```/src``` directory inside the container maps to your project folder and contains your application source code, as the image below shows: 
+
+![alt-text](images/bind-mount-running-ubuntu.png)
+
+4. Create a new file called myfile.text inside the ```src``` folder by running the following command:
+
+```bash
+root@ac1237fad8db:/src# touch myfile.txt
+root@ac1237fad8db:/src# ls
+Dockerfile  myfile.txt  node_modules  package.json  package-lock.json  spec  src  
+```
+
+Creating this file inside the container also creates the same file on the host machine, as shown in the image below:
+
+![alt-text](images/myfile-txt-container-vm.png)
+
+When you perform an action on the host machine, the same change is immediately reflected inside the container. The image below shows this behavior after deleting the file ```myfile.txt```.
+
+![alt-text](images/removing-file-hm.png)
+
+## Development containers
+
+Bind mounts are widely used in local development because they simplify setup. You don’t need to install every build tool or runtime on your host machine. One ```docker run``` command provides the required dependencies and tooling inside the container.
+
+## Running your application in a development container
+
+The steps below show how to run your application in a development container that does the following:
+- Uses a bind mount to share your source code with the container.
+- Installs development dependencies.
+- Starts ``nodemon`` to automatically restart the server when you make changes to your code.
+
+1. First, stop and remove the running container by using the following command:
+
+```bash
+docker rm -f $ID_CONTAINER
+``` 
+2. Now, run the following command to start a development container:
+
+```bash
+docker run -dp 127.0.0.1:3000:3000 \
+    -w /app --mount type=bind,src=.,target=/app \
+    node:24-alpine \
+    sh -c "npm install && npm run dev"
+```
+
+As it shows in the image below, this command starts a container that uses the Node.js image, mounts your application code into the container, installs dependencies, and starts the development server with nodemon:
+
+![alt-text](images/development-container.png)
+
+3. Change the text in the file ```src/static/js/app.js``` in the line 109 "Add Item" to "Add". You will see that the change is reflected in the application running inside the container without needing to rebuild the image or restart the container, as shown in the image below:
+
+- Image of code change:
+![alt-text](images/change-button-text.png)
+
+- Image of change reflected in the application: 
+![alt-text](images/updated-button.png)
