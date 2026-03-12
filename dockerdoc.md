@@ -96,4 +96,55 @@ If your application is running, it should appear in the list of running containe
 
 ![alt text](images/docker-containers-running.png)
 
+## 2. Update the Application
+
+In this section, you will learn how to update the application and image.
+
+On the **line 56** of the file ```src/static/js/app.js``` located in your github getting-started repo, make the following change:
+
+ ```<p className="text-center">You have no todo items yet! Add one above!</p>```
+
+## Stopping and Removing a Container
+
+Once you have updated the code, **stop and remove** the old container so you can rebuild the image with your changes.
+
+To do it, run the following command:
+
+```bash
+docker rm -f $ID_CONTAINER
+```
+
+Now, you just need to rebuild your image using ```docker build``` and run the container again to see that the change was made, as it shows the image bellow:
+
+![alt text](images/updated-code.png)
+
+## 3. Share the Application
+
+To share your application, follow the steps below:
+
+1. Have an account on Docker Hub.
+2. Select the **Create Repository** button.
+3. Give **getting-started** as the name of the repo and **leave the visibility as Public**, as in the image below:
+
+![alt text](images/creating-repository-dockerhub.png)
+
+## Push the image
+
+In order to push the image to Docker Hub follow the steps below:
+
+1. Login to your Docker Hub by using the command ```docker login -u $YOUR_USERNAME```, as in the image below:
+
+![alt text](images/login-docker-hub.png)
+
+2. Run the `docker tag` command to assign a new name to the `getting-started` image, replacing `YOUR-USER-NAME` with your Docker Hub username:
+
+```bash
+docker tag getting-started YOUR-USER-NAME/getting-started
+```
+
+3. Finally, run `docker push YOUR-USER-NAME/getting-started` to push the image to your Docker Hub repository, as it shows in the image bellow
+
+![alt-text](images/dockerhub-push.png)
+
+
 
