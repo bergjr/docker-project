@@ -251,7 +251,12 @@ As it shows in the image below, this command starts a container that uses the No
 3. Change the text in the file ```src/static/js/app.js``` in the line 109 "Add Item" to "Add". You will see that the change is reflected in the application running inside the container without needing to rebuild the image or restart the container, as shown in the image below:
 
 - Image of code change:
+
 ![alt-text](images/change-button-text.png)
 
-- Image of change reflected in the application: 
+- Image of change reflected in the application:
+
 ![alt-text](images/updated-button.png)
+
+## 6. Multi-container apps
+
