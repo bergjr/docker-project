@@ -260,3 +260,111 @@ As it shows in the image below, this command starts a container that uses the No
 
 ## 6. Multi-container apps
 
+In this section you will be adding MySQL to your application stack. 
+
+## Container Networking
+
+Containers by default run in isolation and don't know what happens with other processes and containers running on the same machine. A way to enable those container to talk to each other is networking.
+
+1. Create a Network by using the command bellow:
+
+```bash 
+docker network create todo-app
+```
+
+![alt-text](images/creating-network.png)
+
+2. After that, run your MySQL container and attach it to the created network.
+
+```bash
+docker run -d \
+    --network todo-app --network-alias mysql \
+    -v todo-mysql-data:/var/lib/mysql \
+    -e MYSQL_ROOT_PASSWORD=secret \
+    -e MYSQL_DATABASE=todos \
+    mysql:8.0
+```
+
+![alt-text](images/running-mysql-container.png)
+
+3. Execute the following command to check if the MySQL container is running:
+
+```bash
+docker exec -it <mysql-container-id> mysql -u root -p
+```
+![alt-text](images/mysql-container.png)
+
+## Running your application with MySQL
+
+1. Stop and remove the running container by using the following command:
+
+```bash
+docker rm -f $ID_CONTAINER
+```
+
+2. Now, run the following command to start your application container and attach it to the same network as the MySQL container. Make sure you are inside yiyr application directory (getting-started-app) when you run the command below:
+
+```bash
+docker run -dp 127.0.0.1:3000:3000 \
+  -w /app -v ".:/app" \
+  --network todo-app \
+  -e MYSQL_HOST=mysql \
+  -e MYSQL_USER=root \
+  -e MYSQL_PASSWORD=secret \
+  -e MYSQL_DB=todos \
+  node:24-alpine \
+  sh -c "npm install && npm run dev"
+  ```
+
+This command starts your application container, mounts your source code, and sets environment variables to connect to the MySQL database running in the other container on the same network.
+
+![alt-text](images/running-app-in-network.png)
+
+
+## 7. Docker Compose
+
+Docker Compose is a tool that allows you to define and manage multi-container applications using a simple YAML file. With Docker Compose, you can define your application's services, networks, and volumes in a single file, making it easier to set up and run your application stack.
+
+1. Create a file named `compose.yml` in the root directory of your application with the following content:
+
+2. Open the `compose.yml` file and add the following configuration to define your application and MySQL services:
+
+```bash
+services:
+  app:
+    image: node:24-alpine
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - 127.0.0.1:3000:3000
+    working_dir: /app
+    volumes:
+      - ./:/app
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: root
+      MYSQL_PASSWORD: secret
+      MYSQL_DB: todos
+
+  mysql:
+    image: mysql:8.0
+    volumes:
+      - todo-mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: todos
+
+volumes:
+  todo-mysql-data:
+```
+
+## Running the application with Docker Compose
+
+1. To start your application stack using Docker Compose, run the following command in the terminal:
+
+```bash
+docker compose up -d
+```
+
+This command will read the `compose.yml` file, create the defined services (app and mysql), and start them in detached mode.
+
+![alt-text](images/docker-compose-up.png)
